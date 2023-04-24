@@ -1,0 +1,142 @@
+ 
+ // Energi for elektrolyse af 1 kg vand
+E_e = 20194 [kJ/kg]
+ 
+// Energi ind i værket
+E_ind = 10000 [kJ/s]
+ 
+// Temperaturfald af CO2 i isobar afkøling
+DELTAT_CO2 = 120 [K]
+ 
+// Ønsket varmeændring til fjernvarme
+ReqDELTAT = 50 [K]
+ 
+// Tilstand 1
+ 
+//m_dot_V1 
+P[1] = 100 [kPa]
+T[1]= (25+273) [K]
+ 
+ h[1] = enthalpy(Water; P = P[1]; T = T[1])
+s[1] = entropy(Water; P = P[1]; T = T[1])
+ 
+ 
+// Tilstand 2
+ P[2] = 3500 [kPa]
+ h2s = enthalpy(Water; P = P[2]; s = s[1])
+ 
+0,70 = (h2s-h[1])/(h[2]-h[1])
+ 
+w12 = h[2]-h[1]
+ 
+// Tilstand 3
+ P[3] = 3500 [kPa]
+T[3] = (50+273) [K]
+ 
+h[3] = enthalpy(Hydrogen; P = P[3]; T = T[3])
+s[3] = entropy(Hydrogen; P = P[3]; T =  T[3])
+ 
+// Tilstand 4
+ P[4] = 5000 [kPa]
+ h4s = enthalpy(Hydrogen; P = P[4]; s = s[3])
+ 
+ 0,85 = (h4s-h[3])/(h[4]-h[3])
+ 
+w34 = h[4]-h[3]
+ 
+ 
+// Tilstand 5
+ P[5] = 100 [kPa]
+T[5] = (30 + 273) [K]
+ 
+h[5]= enthalpy(CarbonDioxide; P = P[5]; T = T[5])
+s[5] = entropy(CarbonDioxide; P = P[5]; T = T[5])
+ 
+// Tilstand 6
+P[6] = 1000 [kPa]
+h6s = enthalpy(CarbonDioxide; P = P[6]; s = s[5])
+ 
+0,90 = (h6s-h[5])/(h[6]-h[5])
+ 
+ T[6] = temperature(CarbonDioxide; P = P[6]; h = h[6])
+u[6] = intenergy(CarbonDioxide; P = P[6]; h = h[6])
+ 
+w56  = h[6]-h[5]
+ 
+// Tilstand 7
+ P[7] = P[6]
+T[7] = T[6] - DELTAT_CO2
+ 
+h[7] = enthalpy(CarbonDioxide; P = P[7]; T = T[7])
+s[7] = entropy(CarbonDioxide; P = P[7]; T = T[7]) 
+ u[7] = intenergy(CarbonDioxide; P = P[7]; T = T[7])
+ 
+// Tilstand 8
+ P[8] = 5000 [kPa]
+h8s = enthalpy(CarbonDioxide; P = P[8]; s = s[7])
+ 
+0,90 = (h8s-h[7])/(h[8]-h[7])
+ 
+w78 = h[8]-h[7]
+ 
+// Tilstand 9
+ 
+ 
+ // Masseflows
+m_dot_H2 = m_dot_v1/8,94
+m_dot_CO2 = m_dot_H2*7,28
+m_dot_methanol = 5,3*m_dot_H2
+m_dot_v2 = m_dot_v1/3
+ 
+ // Effekt
+P12 = m_dot_v1*w12
+P23 = E_e*m_dot_v1
+P34 = w34*m_dot_H2
+P56 = w56*m_dot_CO2
+P78 = w78*m_dot_CO2
+ 
+P12+P23+P34+P56+P78 = E_ind
+ 
+// Varme ud
+Q_dot_23 = (0,164)*P23
+Q_dot_34 = 0,15*P34
+Q_dot_56 = 0,1*P56
+Q_dot_67 = (u[6]-u[7])*m_dot_CO2
+Q_dot_78 = 0,1*P78
+Q_dot_89 = 1545[kJ/kg]*m_dot_methanol
+ 
+Q_dot_tot = Q_dot_23+Q_dot_34+Q_dot_56+Q_dot_67+Q_dot_78+Q_dot_89
+ 
+// Varmeændring fra kompressor
+specTransfer = Q_dot_67/m_dot_v1
+cpv = 4,167 [kJ/(kg*K)]
+DELTAT_komp = specTransfer/cpv
+ 
+m_Dot_v3 = Q_dot_tot/(cpv*ReqDELTAT)
+ 
+ 
+ 
+// Effektivitet
+HHV = 22900 [kJ/kg]
+E_out = HHV*m_dot_methanol
+ 
+eta = E_out/E_ind
+ 
+ 
+ //Data der skal bruges til plots
+T[2]=temperature(Water;P=P[2];h=h[2])
+s[2]=entropy(Water;P=P[2];h=h[2])
+ 
+T[4]=temperature(Hydrogen;P=P[4];h=h[4])
+s[4]=entropy(Hydrogen;P=P[4];h=h[4]) 
+ 
+s[6]=entropy(CarbonDioxide;P=P[6];T=T[6]) 
+ 
+T[8]=temperature(CarbonDioxide;P=P[8];h=h[8])
+s[8]=entropy(CarbonDioxide;P=P[8];h=h[8]) 
+ 
+ 
+ 
+ 
+ 
+//
